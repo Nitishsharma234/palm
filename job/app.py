@@ -7,31 +7,23 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-# -----------------------------
-# Paths
-# -----------------------------
+
 BASE_DIR = r"C:\Users\HP\Desktop\job"
 CSV_PATH = os.path.join(BASE_DIR, "dataset.csv")
-MASKS_DIR = os.path.join(BASE_DIR, "dataset", "masks")  # where your mask images are
+MASKS_DIR = os.path.join(BASE_DIR, "dataset", "masks")  
 
-# -----------------------------
-# Load dataset
-# -----------------------------
+
 df = pd.read_csv(CSV_PATH)
 
-# -----------------------------
-# Function to compute line lengths from mask
-# -----------------------------
+
 def line_lengths(mask):
-    # Count pixels in color ranges (BGR)
+
     life = np.sum(cv2.inRange(mask, (0, 0, 150), (50, 50, 255)))   # red
     head = np.sum(cv2.inRange(mask, (0, 150, 150), (50, 255, 255))) # yellow
     heart = np.sum(cv2.inRange(mask, (150, 0, 0), (255, 50, 50)))   # blue
     return life, head, heart
 
-# -----------------------------
-# Compute features for all dataset masks
-# -----------------------------
+
 life_list, head_list, heart_list = [], [], []
 for img_id in df['image_id']:
     mask_path = os.path.join(MASKS_DIR, f"{img_id}_mask.png")
@@ -50,9 +42,6 @@ df['life_len'] = life_list
 df['head_len'] = head_list
 df['heart_len'] = heart_list
 
-# -----------------------------
-# Train RandomForest Classifier
-# -----------------------------
 X = df[['life_len', 'head_len', 'heart_len']].values
 y = df['dominant_line']
 
@@ -65,9 +54,7 @@ clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 acc = accuracy_score(y_test, y_pred)
 
-# -----------------------------
-# Streamlit App
-# -----------------------------
+
 st.title("Palm-Astro Line Predictor")
 st.write(f"Model Accuracy on Test Data: **{acc*100:.2f}%**")
 st.write("Upload a **mask image** of the palm (red=Life, yellow=Head, blue=Heart)")
@@ -88,3 +75,4 @@ if uploaded_file is not None:
 
     # Show the uploaded mask
     st.image(cv2.cvtColor(mask, cv2.COLOR_BGR2RGB), caption="Uploaded Mask", use_column_width=True)
+
